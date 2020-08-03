@@ -1,10 +1,10 @@
-package com.aykuttasil.callrecord.receiver
+package com.aykuttasil.callrecorder.recorder.receiver
 
 import android.content.Context
 import android.media.MediaRecorder
-import com.aykuttasil.callrecord.CallRecord
-import com.aykuttasil.callrecord.helper.LogUtils
-import com.aykuttasil.callrecord.helper.PrefsHelper
+import com.aykuttasil.callrecorder.recorder.CallRecord
+import com.aykuttasil.callrecorder.recorder.helper.PrefsHelper
+import com.orhanobut.logger.Logger
 import java.io.File
 import java.io.IOException
 import java.util.Date
@@ -188,7 +188,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
 
             return true
         } catch (e: Exception) {
-            LogUtils.e(e)
+            Logger.e(e.toString())
             e.printStackTrace()
             return false
         }

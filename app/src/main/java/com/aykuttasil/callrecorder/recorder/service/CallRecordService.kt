@@ -1,12 +1,12 @@
-package com.aykuttasil.callrecord.service
+package com.aykuttasil.callrecorder.recorder.service
 
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.annotation.Nullable
-import com.aykuttasil.callrecord.CallRecord
-import com.aykuttasil.callrecord.helper.LogUtils
-import com.aykuttasil.callrecord.helper.PrefsHelper
+import com.aykuttasil.callrecorder.recorder.CallRecord
+import com.aykuttasil.callrecorder.recorder.helper.PrefsHelper
+import com.orhanobut.logger.Logger
 
 open class CallRecordService : Service() {
 

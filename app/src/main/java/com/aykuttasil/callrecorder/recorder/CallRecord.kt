@@ -1,15 +1,14 @@
-package com.aykuttasil.callrecord
+package com.aykuttasil.callrecorder.recorder
 
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaRecorder
 import android.os.Environment
-import com.aykuttasil.callrecord.helper.LogUtils
-import com.aykuttasil.callrecord.helper.PrefsHelper
-import com.aykuttasil.callrecord.receiver.CallRecordReceiver
-import com.aykuttasil.callrecord.service.CallRecordService
-import timber.log.Timber
+import com.aykuttasil.callrecorder.recorder.helper.PrefsHelper
+import com.aykuttasil.callrecorder.recorder.receiver.CallRecordReceiver
+import com.aykuttasil.callrecorder.recorder.service.CallRecordService
+import com.orhanobut.logger.Logger
 
 class CallRecord private constructor(private val mContext: Context) {
     private var mCallRecordReceiver: CallRecordReceiver? = null
@@ -43,7 +42,7 @@ class CallRecord private constructor(private val mContext: Context) {
                 mContext.unregisterReceiver(mCallRecordReceiver)
             }
         } catch (e: Exception) {
-            LogUtils.e(e)
+            Logger.e(e.toString())
         }
     }
 
@@ -153,9 +152,8 @@ class CallRecord private constructor(private val mContext: Context) {
             val callRecord = CallRecord(mContext)
             callRecord.enableSaveFile()
 
-            if (logEnable) {
-                Timber.plant(Timber.DebugTree())
-            }
+//            if (logEnable) {
+//            }
 
             return callRecord
         }
