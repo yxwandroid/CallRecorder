@@ -13,11 +13,9 @@ import com.orhanobut.logger.Logger
 class CallRecord private constructor(private val mContext: Context) {
     private var mCallRecordReceiver: CallRecordReceiver? = null
 
-    val stateSaveFile: Boolean
-        get() = PrefsHelper.readPrefBool(mContext, PREF_SAVE_FILE)
+    val stateSaveFile: Boolean get() = PrefsHelper.readPrefBool(mContext, PREF_SAVE_FILE)
 
-    val recordFileName: String?
-        get() = PrefsHelper.readPrefString(mContext, PREF_FILE_NAME)
+    val recordFileName: String? get() = PrefsHelper.readPrefString(mContext, PREF_FILE_NAME)
 
     val recordDirName: String?
         get() = PrefsHelper.readPrefString(mContext, PREF_DIR_NAME)

@@ -4,11 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 
-/**
- * Created by aykutasil on 8.12.2016.
- */
-
-class PrefsHelper private constructor(){
+class PrefsHelper private constructor() {
 
     lateinit var preference: SharedPreferences
 

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.TelephonyManager
+import com.orhanobut.logger.Logger
 import java.util.Date
 
 abstract class PhoneCallReceiver : BroadcastReceiver() {
@@ -48,7 +49,9 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
 
     //Incoming call-  goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
     //Outgoing call-  goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
-    fun onCallStateChanged(context: Context, state: Int, number: String?) {
+    private fun onCallStateChanged(context: Context, state: Int, number: String?) {
+
+        Logger.i("TelephonyManager----%s-",state)
         if (lastState == state) {
             //No change, debounce extras
             return

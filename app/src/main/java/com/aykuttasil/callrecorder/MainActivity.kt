@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.aykuttasil.callrecorder.recorder.CallRecord
 import com.orhanobut.logger.Logger
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -60,12 +61,13 @@ class MainActivity : AppCompatActivity() {
 //        callRecord.startCallRecordService()
 //        callRecord.enableSaveFile();
 //        callRecord.startCallReceiver()
-
+        var amrPath = "/sdcard/audio"
         callRecord = CallRecord.Builder(this)
                 .setLogEnable(true)
                 .setRecordFileName("RecordFileName")
                 .setRecordDirName("RecordDirName")
-                .setRecordDirPath(Environment.getExternalStorageDirectory().path) // optional & default value
+//                .setRecordDirPath(Environment.getDownloadCacheDirectory().path) // optional & default value
+                .setRecordDirPath(amrPath) // optional & default value
                 .setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB) // optional & default value
                 .setOutputFormat(MediaRecorder.OutputFormat.AMR_NB) // optional & default value
                 .setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION) // optional & default value
@@ -74,23 +76,19 @@ class MainActivity : AppCompatActivity() {
 
 
         callRecord.startCallReceiver()
-        callRecord.enableSaveFile();
 
     }
 
-    fun StartCallRecordClick(view: View) {
-        Logger.d(TAG, "StartCallRecordClick")
-
-        callRecord.startCallReceiver()
-        //callRecord.enableSaveFile();
-        //callRecord.changeRecordDirName("NewDirName");
+    fun getSDPath(): String? {
+        var sdDir: File? = null
+        val sdCardExist = (Environment.getExternalStorageState()
+                == Environment.MEDIA_MOUNTED) //判断sd卡是否存在
+        if (sdCardExist) {
+            sdDir = Environment.getExternalStorageDirectory() //获取跟目录
+        }
+        return sdDir.toString()
     }
 
-    fun StopCallRecordClick(view: View) {
-        Logger.i(TAG, "StopCallRecordClick")
-        callRecord.stopCallReceiver()
 
-        //callRecord.disableSaveFile();
-        //callRecord.changeRecordFileName("NewFileName");
-    }
+
 }

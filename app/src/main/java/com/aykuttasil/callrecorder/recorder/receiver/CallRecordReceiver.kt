@@ -53,7 +53,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
     private fun startRecord(context: Context, seed: String, phoneNumber: String?) {
         try {
             val isSaveFile = PrefsHelper.readPrefBool(context, CallRecord.PREF_SAVE_FILE)
-            Logger.i(TAG, "isSaveFile: $isSaveFile")
+            Logger.i("isSaveFile: $isSaveFile")
 
             // is save file?
             if (!isSaveFile) {
@@ -66,7 +66,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
                 } catch (e: RuntimeException) {
                     // RuntimeException is thrown when stop() is called immediately after start().
                     // In this case the output file is not properly constructed ans should be deleted.
-                    Logger.d(TAG, "RuntimeException: stop() is called immediately after start()")
+                    Logger.d("RuntimeException: stop() is called immediately after start()")
                     audioFile?.delete()
                 }
 
@@ -77,7 +77,8 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
                     recorder!!.start()
                     isRecordStarted = true
                     onRecordingStarted(context, callRecord, audioFile)
-                    Logger.i(TAG, "record start")
+                    Logger.i("record start")
+                    Logger.i("record audioFile %s", audioFile)
                 } else {
                     releaseMediaRecorder()
                 }
@@ -100,7 +101,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
                 releaseMediaRecorder()
                 isRecordStarted = false
                 onRecordingFinished(context, callRecord, audioFile)
-                Logger.i(TAG, "record stop")
+                Logger.i("record stop")
             }
         } catch (e: Exception) {
             releaseMediaRecorder()
@@ -109,7 +110,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
     }
 
     private fun prepareAudioRecorder(
-        context: Context, seed: String, phoneNumber: String?
+            context: Context, seed: String, phoneNumber: String?
     ): Boolean {
         try {
             var fileName = PrefsHelper.readPrefString(context, CallRecord.PREF_FILE_NAME)
@@ -117,7 +118,7 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
             val dirName = PrefsHelper.readPrefString(context, CallRecord.PREF_DIR_NAME)
             val showSeed = PrefsHelper.readPrefBool(context, CallRecord.PREF_SHOW_SEED)
             val showPhoneNumber =
-                PrefsHelper.readPrefBool(context, CallRecord.PREF_SHOW_PHONE_NUMBER)
+                    PrefsHelper.readPrefBool(context, CallRecord.PREF_SHOW_PHONE_NUMBER)
             val outputFormat = PrefsHelper.readPrefInt(context, CallRecord.PREF_OUTPUT_FORMAT)
             val audioSource = PrefsHelper.readPrefInt(context, CallRecord.PREF_AUDIO_SOURCE)
             val audioEncoder = PrefsHelper.readPrefInt(context, CallRecord.PREF_AUDIO_ENCODER)
