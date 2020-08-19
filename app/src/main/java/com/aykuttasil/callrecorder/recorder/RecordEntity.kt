@@ -1,0 +1,42 @@
+package com.aykuttasil.callrecorder.recorder
+
+import android.text.TextUtils
+import java.io.File
+
+
+class RecordEntity {
+    var phoneNumber: String? = null
+    var startTime: Long? = 0
+    var endTime: Long? = 0
+    var callLongId = 0
+    var seed = ""
+    var startFilePath: String? = null
+    var endFilePath: String? = null
+    override fun toString(): String {
+        return "RecordEntity(phoneNumber=$phoneNumber, startTime=$startTime, endTime=$endTime, callLongId=$callLongId, seed='$seed', startFileName=$startFilePath, endFileName=$endFilePath)"
+    }
+
+    fun createEndFileName() {
+        val replace = startFilePath?.replace("beginRecordTime", startTime.toString())
+        val replace1 = replace?.replace("endRecordTime", endTime.toString())
+        endFilePath = replace1
+
+    }
+
+
+    /**
+     * oldPath 和 newPath必须是新旧文件的绝对路径
+     */
+    private fun renameFile(oldPath: String, newPath: String) {
+        if (TextUtils.isEmpty(oldPath)) {
+            return
+        }
+        if (TextUtils.isEmpty(newPath)) {
+            return
+        }
+        val file = File(oldPath)
+        file.renameTo(File(newPath))
+    }
+
+
+}

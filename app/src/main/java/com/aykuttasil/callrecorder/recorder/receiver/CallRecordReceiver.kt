@@ -3,11 +3,12 @@ package com.aykuttasil.callrecorder.recorder.receiver
 import android.content.Context
 import android.media.MediaRecorder
 import com.aykuttasil.callrecorder.recorder.CallRecord
-import com.aykuttasil.callrecorder.recorder.helper.PrefsHelper
+import com.aykuttasil.callrecorder.recorder.RecordEntity
 import com.orhanobut.logger.Logger
 import java.io.File
 import java.io.IOException
 import java.util.Date
+import kotlin.concurrent.thread
 
 open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallReceiver() {
 
@@ -22,6 +23,8 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
 
     private var audioFile: File? = null
     private var isRecordStarted = false
+    private var recordEntity: RecordEntity? = null;
+
 
     override fun onIncomingCallReceived(context: Context, number: String?, start: Date) {
     }
@@ -50,15 +53,11 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
 
     protected open fun onRecordingFinished(context: Context, callRecord: CallRecord, audioFile: File?) {}
 
+    /**
+     *seed  incoming
+     */
     private fun startRecord(context: Context, seed: String, phoneNumber: String?) {
         try {
-            val isSaveFile = PrefsHelper.readPrefBool(context, CallRecord.PREF_SAVE_FILE)
-            Logger.i("isSaveFile: $isSaveFile")
-
-            // is save file?
-            if (!isSaveFile) {
-                return
-            }
 
             if (isRecordStarted) {
                 try {
@@ -101,11 +100,25 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
                 releaseMediaRecorder()
                 isRecordStarted = false
                 onRecordingFinished(context, callRecord, audioFile)
-                Logger.i("record stop")
+
+                var endRecordTime = System.currentTimeMillis()
+                recordEntity?.endTime = endRecordTime;
+                recordEntity?.createEndFileName()
+
+                var outPutFile = recordEntity?.endFilePath;
+
+                Logger.i("record stop 输出文件名称 $outPutFile")
+
+                thread {
+                    audioFile?.renameTo(File(outPutFile))
+                }
+
+                Logger.i("record stop 录制信息 ${recordEntity.toString()}")
             }
         } catch (e: Exception) {
             releaseMediaRecorder()
             e.printStackTrace()
+            Logger.i("record stop e $e")
         }
     }
 
@@ -113,64 +126,56 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
             context: Context, seed: String, phoneNumber: String?
     ): Boolean {
         try {
-            var fileName = PrefsHelper.readPrefString(context, CallRecord.PREF_FILE_NAME)
-            val dirPath = PrefsHelper.readPrefString(context, CallRecord.PREF_DIR_PATH)
-            val dirName = PrefsHelper.readPrefString(context, CallRecord.PREF_DIR_NAME)
-            val showSeed = PrefsHelper.readPrefBool(context, CallRecord.PREF_SHOW_SEED)
-            val showPhoneNumber =
-                    PrefsHelper.readPrefBool(context, CallRecord.PREF_SHOW_PHONE_NUMBER)
-            val outputFormat = PrefsHelper.readPrefInt(context, CallRecord.PREF_OUTPUT_FORMAT)
-            val audioSource = PrefsHelper.readPrefInt(context, CallRecord.PREF_AUDIO_SOURCE)
-            val audioEncoder = PrefsHelper.readPrefInt(context, CallRecord.PREF_AUDIO_ENCODER)
-
-            val sampleDir = File("$dirPath/$dirName")
+            var dirPath = "/sdcard/audio/RecordDirName/"
+            val sampleDir = File(dirPath)
 
             if (!sampleDir.exists()) {
                 sampleDir.mkdirs()
             }
-
+            Logger.i("start record 存储路径:${dirPath}")
             val fileNameBuilder = StringBuilder()
-            fileNameBuilder.append(fileName)
-            fileNameBuilder.append("_")
-
-            if (showSeed) {
-                fileNameBuilder.append(seed)
-                fileNameBuilder.append("_")
-            }
-
-            if (showPhoneNumber && phoneNumber != null) {
+            if (phoneNumber != null) {
                 fileNameBuilder.append(phoneNumber)
                 fileNameBuilder.append("_")
+                fileNameBuilder.append("beginRecordTime_")
+                if (seed.startsWith("incoming")) {
+                    fileNameBuilder.append("0_")
+                } else {
+                    fileNameBuilder.append("1_")
+                }
+
+                fileNameBuilder.append("endRecordTime_")
+                fileNameBuilder.append("callLogId")
+            }else{
+                fileNameBuilder.append("error")
             }
 
-            fileName = fileNameBuilder.toString()
+            val suffix = ".amr"
 
-            val suffix: String
-            when (outputFormat) {
-                MediaRecorder.OutputFormat.AMR_NB -> {
-                    suffix = ".amr"
-                }
-                MediaRecorder.OutputFormat.AMR_WB -> {
-                    suffix = ".amr"
-                }
-                MediaRecorder.OutputFormat.MPEG_4 -> {
-                    suffix = ".mp4"
-                }
-                MediaRecorder.OutputFormat.THREE_GPP -> {
-                    suffix = ".3gp"
-                }
-                else -> {
-                    suffix = ".amr"
-                }
-            }
+            fileNameBuilder.append(suffix)
 
-            audioFile = File.createTempFile(fileName, suffix, sampleDir)
+            var fileName = fileNameBuilder.toString()
+            Logger.i("start record 存储文件名:${fileName}")
+
+
+            var filePath = "$dirPath$fileName"
+            audioFile = File(filePath)
+
+
+            var beginRecordTime = System.currentTimeMillis()
+            recordEntity = RecordEntity();
+            recordEntity?.phoneNumber = phoneNumber;
+            recordEntity?.startTime = beginRecordTime;
+            recordEntity?.seed = seed;
+            recordEntity?.startFilePath = filePath
+
+            Logger.i("start record 录音信息:${recordEntity.toString()}")
 
             recorder = MediaRecorder()
             recorder?.apply {
-                setAudioSource(audioSource)
-                setOutputFormat(outputFormat)
-                setAudioEncoder(audioEncoder)
+                setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                setOutputFormat(MediaRecorder.OutputFormat.AMR_NB)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
                 setOutputFile(audioFile!!.absolutePath)
                 setOnErrorListener { _, _, _ -> }
             }
@@ -178,11 +183,11 @@ open class CallRecordReceiver(private var callRecord: CallRecord) : PhoneCallRec
             try {
                 recorder?.prepare()
             } catch (e: IllegalStateException) {
-                Logger.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.message)
+                Logger.e(TAG, "IllegalStateException preparing MediaRecorder: " + e.message)
                 releaseMediaRecorder()
                 return false
             } catch (e: IOException) {
-                Logger.d(TAG, "IOException preparing MediaRecorder: " + e.message)
+                Logger.e(TAG, "IOException preparing MediaRecorder: " + e.message)
                 releaseMediaRecorder()
                 return false
             }

@@ -10,7 +10,12 @@ import java.util.Date
 abstract class PhoneCallReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        //We listen to two intents.  The new outgoing call only tells us of an outgoing call.  We use it to get the number.
+        val action = intent.action
+        Logger.i("intent.action: $action ")
+        var phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER) ?: intent.extras?.getString(TelephonyManager.EXTRA_INCOMING_NUMBER)
+                ?: null
+        Logger.i("手机号是phoneNumber: $phoneNumber")
+
         if (intent.action == CallRecordReceiver.ACTION_OUT) {
             savedNumber = intent.extras!!.getString(CallRecordReceiver.EXTRA_PHONE_NUMBER)
         } else {
@@ -50,8 +55,6 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
     //Incoming call-  goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
     //Outgoing call-  goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
     private fun onCallStateChanged(context: Context, state: Int, number: String?) {
-
-        Logger.i("TelephonyManager----%s-",state)
         if (lastState == state) {
             //No change, debounce extras
             return
@@ -65,6 +68,7 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
 
                 onIncomingCallReceived(context, number, callStartTime)
             }
+            //正在通话
             TelephonyManager.CALL_STATE_OFFHOOK ->
                 //Transition of ringing->offhook are pickups of incoming calls.  Nothing done on them
                 if (lastState != TelephonyManager.CALL_STATE_RINGING) {
@@ -78,6 +82,7 @@ abstract class PhoneCallReceiver : BroadcastReceiver() {
 
                     onIncomingCallAnswered(context, savedNumber, callStartTime)
                 }
+            //电话挂断
             TelephonyManager.CALL_STATE_IDLE ->
                 //Went to idle-  this is the end of a call.  What type depends on previous state(s)
                 if (lastState == TelephonyManager.CALL_STATE_RINGING) {

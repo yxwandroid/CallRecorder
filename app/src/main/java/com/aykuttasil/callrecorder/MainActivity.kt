@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.aykuttasil.callrecorder.recorder.CallRecord
 import com.orhanobut.logger.Logger
 import java.io.File
+import kotlin.concurrent.thread
 
 
 class MainActivity : AppCompatActivity() {
@@ -61,22 +62,19 @@ class MainActivity : AppCompatActivity() {
 //        callRecord.startCallRecordService()
 //        callRecord.enableSaveFile();
 //        callRecord.startCallReceiver()
-        var amrPath = "/sdcard/audio"
-        callRecord = CallRecord.Builder(this)
-                .setLogEnable(true)
-                .setRecordFileName("RecordFileName")
-                .setRecordDirName("RecordDirName")
-//                .setRecordDirPath(Environment.getDownloadCacheDirectory().path) // optional & default value
-                .setRecordDirPath(amrPath) // optional & default value
-                .setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB) // optional & default value
-                .setOutputFormat(MediaRecorder.OutputFormat.AMR_NB) // optional & default value
-                .setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION) // optional & default value
-                .setShowSeed(true) // optional & default value ->Ex: RecordFileName_incoming.amr || RecordFileName_outgoing.amr
-                .build()
+//        callRecord = CallRecord.Builder(this).build()
+//        callRecord.startCallReceiver()
 
 
-        callRecord.startCallReceiver()
+        thread {
 
+            var sourceFilePath = "/sdcard/audio/RecordDirName/13262938569_1596770919533_0_1596770927657_callLogId.amr"
+            var targetFilePaht = "/sdcard/audio/RecordDirName/13262938569_1596770919533_0_1596770927657_callLogId.wav"
+
+            AudioFormatConvertUtil.changeToWav(sourceFilePath, targetFilePaht, 0F);
+
+
+        }
     }
 
     fun getSDPath(): String? {
@@ -88,7 +86,6 @@ class MainActivity : AppCompatActivity() {
         }
         return sdDir.toString()
     }
-
 
 
 }
